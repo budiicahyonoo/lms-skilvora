@@ -27,7 +27,7 @@ export class UsersService {
         email: createUserDto.email,
         name: createUserDto.name,
         password: hashedPassword,
-        role: (createUserDto.role as Role) || Role.USER,
+        role: (createUserDto.role as Role) || Role.STUDENT,
       },
       select: {
         id: true,

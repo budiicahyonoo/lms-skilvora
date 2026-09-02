@@ -9,17 +9,14 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() body: any, @Res({ passthrough: true }) res: Response) {
-    // 1. Cek kredensial via Service
     const user = await this.authService.validateUser(body.email, body.password);
     
     if (!user) {
       throw new UnauthorizedException('Email atau Password salah');
     }
 
-    // 2. Jika valid, buat token
     const tokens = await this.authService.login(user);
 
-    // 3. Simpan Refresh Token ke HTTP-Only Cookie (sangat aman)
     res.cookie('refresh_token', tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -27,7 +24,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // 4. Kembalikan Access Token ke frontend untuk disimpan di memory
     return {
       message: 'Login berhasil',
       user: tokens.user,
@@ -35,22 +31,28 @@ export class AuthController {
     };
   }
 
+  // --- ENDPOINT BARU UNTUK MENGAMBIL PROFIL ---
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  getProfile(@Req() req: any) {
+    // JWT Guard otomatis mengekstrak payload token dan menyisipkannya ke req.user
+    return req.user;
+  }
+
   // --- GOOGLE OAUTH ROUTES ---
   
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth(@Req() req: any) {
-    // Otomatis dialihkan ke halaman login Google oleh Passport
-  }
+  async googleAuth(@Req() req: any) {}
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
-    // req.user berisi data profil dari GoogleStrategy
     const tokens = await this.authService.login(req.user);
 
-    // Tanamkan access_token di cookie agar Next.js bisa membacanya
-    res.cookie('access_token', tokens.access_token, {
+    // DIPERBARUI: Nama cookie diubah dari 'access_token' menjadi 'token'
+    // agar sinkron dengan file proxy.ts di Next.js
+    res.cookie('token', tokens.access_token, {
       httpOnly: false, 
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 1000, 
@@ -62,7 +64,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // Tendang kembali ke frontend utama (dashboard)
-    res.redirect('http://localhost:3000/choice');
+    res.redirect('http://localhost:3000/dashboard');
   }
 }

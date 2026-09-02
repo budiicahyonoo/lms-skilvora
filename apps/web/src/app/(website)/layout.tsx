@@ -26,7 +26,7 @@ export default function WebsiteLayout({ children }: { children: React.ReactNode 
             {/* Tombol Aksi Desktop */}
             <div className="hidden md:flex items-center gap-4">
               <a href="/auth/login" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Log In</a>
-              <a href="/choice" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium shadow-sm hover:opacity-90 transition-opacity">Get Started</a>
+              <a href="import { api } from '@/lib/axios'" className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium shadow-sm hover:opacity-90 transition-opacity">Get Started</a>
             </div>
 
             {/* Hamburger Menu (Mobile) */}

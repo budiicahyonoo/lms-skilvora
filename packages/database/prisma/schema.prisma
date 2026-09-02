@@ -8,17 +8,247 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ================= ENUMS =================
+
 enum Role {
   ADMIN
-  USER
+  INSTRUCTOR
+  STUDENT
 }
 
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum ClassLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum QuizType {
+  MODULE
+  FINAL
+}
+
+enum EnrollmentStatus {
+  PENDING
+  ACTIVE
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum CertificateStatus {
+  VALID
+  REVOKED
+}
+
+// ================= MODELS =================
+
 model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  password       String?  
+  name           String?
+  profilePicture String?
+  role           Role     @default(STUDENT)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  classesTaught     Class[]       @relation("InstructorClasses")
+  enrollments       Enrollment[]
+  quizAttempts      QuizAttempt[]
+  certificates      Certificate[]
+  confirmedPayments Payment[]     @relation("AdminConfirmedPayments")
+}
+
+model Category {
   id        String   @id @default(cuid())
-  email     String   @unique
-  password  String?  
-  name      String?
-  role      Role     @default(USER)
+  name      String   @unique
+  slug      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  classes   Class[]
+}
+
+model Roadmap {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  description String?       @db.Text
+  status      PublishStatus @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  nodes       RoadmapNode[]
+}
+
+model RoadmapNode {
+  id        String   @id @default(cuid())
+  roadmapId String
+  classId   String
+  title     String
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roadmap   Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Restrict)
+
+  @@unique([roadmapId, order]) // Mencegah duplikasi urutan dalam 1 roadmap
+}
+
+model Class {
+  id           String        @id @default(cuid())
+  instructorId String
+  categoryId   String
+  title        String
+  slug         String        @unique
+  description  String?       @db.Text
+  level        ClassLevel    @default(BEGINNER)
+  thumbnail    String?
+  price        Decimal       @default(0) @db.Decimal(10, 2)
+  status       PublishStatus @default(DRAFT)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  instructor   User          @relation("InstructorClasses", fields: [instructorId], references: [id])
+  category     Category      @relation(fields: [categoryId], references: [id])
+  
+  modules      Module[]
+  quizzes      Quiz[]        // Kuis akhir kelas menempel langsung ke class
+  roadmapNodes RoadmapNode[]
+  enrollments  Enrollment[]
+  certificates Certificate[]
+}
+
+model Module {
+  id            String   @id @default(cuid())
+  classId       String
+  title         String
+  order         Int
+  videoUrl      String?
+  content       String?  @db.Text
+  isFreePreview Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  class         Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  quiz          Quiz?    @relation("ModuleQuiz") // 1 modul max 1 kuis
+  progresses    ModuleProgress[]
+
+  @@unique([classId, order])
+}
+
+model Quiz {
+  id           String   @id @default(cuid())
+  classId      String
+  moduleId     String?  @unique // Null jika ini kuis akhir kelas
+  type         QuizType
+  passingGrade Int      @default(70)
+  maxAttempts  Int      @default(3)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  class        Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  module       Module?  @relation("ModuleQuiz", fields: [moduleId], references: [id], onDelete: Cascade)
+  
+  questions    QuizQuestion[]
+  attempts     QuizAttempt[]
+}
+
+model QuizQuestion {
+  id            String   @id @default(cuid())
+  quizId        String
+  question      String   @db.Text
+  options       Json     // Disimpan sebagai array JSON e.g. [{"id":"A", "text":"..."}, ...]
+  correctAnswer String   // ID opsi yang benar
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model QuizAttempt {
+  id            String   @id @default(cuid())
+  quizId        String
+  userId        String
+  score         Int
+  isPassed      Boolean
+  attemptNumber Int
+  submittedAt   DateTime @default(now())
+
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Enrollment {
+  id         String           @id @default(cuid())
+  userId     String
+  classId    String
+  status     EnrollmentStatus @default(PENDING)
+  enrolledAt DateTime         @default(now())
+
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class      Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  progresses ModuleProgress[]
+  payments   Payment[]
+
+  @@unique([userId, classId])
+}
+
+model ModuleProgress {
+  id           String         @id @default(cuid())
+  enrollmentId String
+  moduleId     String
+  status       ProgressStatus @default(NOT_STARTED)
+  completedAt  DateTime?
+
+  enrollment   Enrollment     @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  module       Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, moduleId])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  enrollmentId  String
+  amount        Decimal       @db.Decimal(10, 2)
+  method        String        // e.g., "MANUAL_TRANSFER", "QRIS"
+  status        PaymentStatus @default(PENDING)
+  proofUrl      String?
+  confirmedById String?
+  confirmedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  enrollment    Enrollment    @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  confirmedBy   User?         @relation("AdminConfirmedPayments", fields: [confirmedById], references: [id], onDelete: SetNull)
+}
+
+model Certificate {
+  id               String            @id @default(cuid())
+  userId           String
+  classId          String
+  verificationCode String            @unique // e.g., UUID pendek
+  status           CertificateStatus @default(VALID)
+  issuedAt         DateTime          @default(now())
+  revokedReason    String?           @db.Text
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class            Class             @relation(fields: [classId], references: [id], onDelete: Cascade)
 }

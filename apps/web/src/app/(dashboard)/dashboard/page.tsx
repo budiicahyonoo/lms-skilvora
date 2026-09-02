@@ -1,69 +1,76 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+'use client';
 
-export default function DashboardPage() {
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { GlassCard } from "@/components/ui/glass-card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { AuthService, UserProfile } from "@/services/auth.service";
+
+export default function DashboardHomePage() {
+  const [user, setUser] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    AuthService.getProfile().then(setUser).catch(() => {});
+  }, []);
+
+  if (!user) return <div className="animate-pulse bg-white/10 h-32 rounded-xl"></div>;
+
   return (
-    <div className="max-w-6xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-foreground">Dashboard Overview</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-foreground/70">Total Pengguna</CardTitle>
-            <span className="text-primary text-lg">👥</span>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">1,245</div>
-            <p className="text-xs text-foreground/50 mt-1">+12% dari bulan lalu</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-foreground/70">Sesi Aktif</CardTitle>
-            <span className="text-secondary text-lg">⚡</span>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">342</div>
-            <p className="text-xs text-foreground/50 mt-1">Saat ini online</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-foreground/70">Pendapatan</CardTitle>
-            <span className="text-green-500 text-lg">💰</span>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">Rp 4.5M</div>
-            <p className="text-xs text-foreground/50 mt-1">+8% dari bulan lalu</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-foreground/70">Sistem Error</CardTitle>
-            <span className="text-red-500 text-lg">⚠️</span>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">0</div>
-            <p className="text-xs text-foreground/50 mt-1">Sistem berjalan normal</p>
-          </CardContent>
-        </Card>
-
+    <div className="max-w-5xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-[#00033D] mb-2">Selamat Datang, {user.name}!</h1>
+        <p className="text-[#00033D]/70">
+          {user.role === 'STUDENT' && "Lanjutkan progres belajar Anda hari ini dan capai target roadmap."}
+          {user.role === 'INSTRUCTOR' && "Pantau performa kelas dan progres siswa Anda."}
+          {user.role === 'ADMIN' && "Kelola operasional platform Skilvora secara menyeluruh."}
+        </p>
       </div>
 
-      <Card className="min-h-[300px]">
-        <CardHeader>
-          <CardTitle>Aktivitas Terbaru</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center h-48 border border-dashed border-border rounded-md bg-muted/30">
-            <p className="text-sm text-foreground/50">Komponen tabel data akan dirender di area ini.</p>
+      {/* TAMPILAN SISWA */}
+      {user.role === 'STUDENT' && (
+        <>
+          <h2 className="text-xl font-bold text-[#00033D] mb-4">Ringkasan Belajar</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+             <GlassCard className="p-6">
+                <p className="text-sm font-medium text-[#00033D]/60 mb-2">Kelas Aktif</p>
+                <p className="text-3xl font-bold text-[#0033FF]">2</p>
+             </GlassCard>
+             <GlassCard className="p-6">
+                <p className="text-sm font-medium text-[#00033D]/60 mb-2">Sertifikat Diperoleh</p>
+                <p className="text-3xl font-bold text-[#0033FF]">0</p>
+             </GlassCard>
           </div>
-        </CardContent>
-      </Card>
-      
+        </>
+      )}
+
+      {/* TAMPILAN INSTRUKTUR */}
+      {user.role === 'INSTRUCTOR' && (
+        <div className="grid md:grid-cols-2 gap-6">
+          <GlassCard className="p-6">
+             <div className="flex justify-between items-center mb-4">
+               <h3 className="text-lg font-bold text-[#00033D]">HTML & CSS Dasar</h3>
+               <Badge>Published</Badge>
+             </div>
+             <p className="text-[#00033D]/70 mb-4">124 Siswa Terdaftar</p>
+             <Button variant="secondary" asChild><Link href="/dashboard/manage-classes/html-css-dasar">Kelola Konten</Link></Button>
+          </GlassCard>
+        </div>
+      )}
+
+      {/* TAMPILAN ADMIN */}
+      {user.role === 'ADMIN' && (
+        <div className="grid md:grid-cols-3 gap-6">
+           <GlassCard className="p-6">
+              <p className="text-sm font-medium text-[#00033D]/60 mb-2">Total Siswa</p>
+              <p className="text-3xl font-bold text-[#0033FF]">1,402</p>
+           </GlassCard>
+           <GlassCard className="p-6">
+              <p className="text-sm font-medium text-[#00033D]/60 mb-2">Transaksi Pending</p>
+              <p className="text-3xl font-bold text-red-500">12</p>
+           </GlassCard>
+        </div>
+      )}
     </div>
   );
 }

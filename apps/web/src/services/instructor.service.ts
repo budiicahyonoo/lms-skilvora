@@ -1,0 +1,45 @@
+import { api } from '@/lib/axios';
+
+export const InstructorService = {
+  getMyClasses: async () => {
+    const response = await api.get('/courses/instructor/my-classes');
+    return response.data;
+  },
+  createClass: async (data: any) => {
+    const response = await api.post('/courses/instructor/classes', data);
+    return response.data;
+  },
+  // --- TAMBAHAN BARU ---
+  getClassById: async (id: string) => {
+    const response = await api.get(`/courses/instructor/classes/${id}`);
+    return response.data;
+  },
+  createModule: async (classId: string, data: any) => {
+    const response = await api.post(`/modules/class/${classId}`, data);
+    return response.data;
+  },
+  deleteModule: async (moduleId: string) => {
+    const response = await api.delete(`/modules/${moduleId}`);
+    return response.data;
+  }
+};
+
+export const EnrollmentService = {
+  enroll: async (classId: string) => {
+    const response = await api.post(`/enrollments/${classId}`);
+    return response.data;
+  },
+  getMyEnrollments: async () => {
+    const response = await api.get('/enrollments/my');
+    return response.data;
+  },
+  // --- TAMBAHAN BARU ---
+  getEnrollmentDetails: async (classId: string) => {
+    const response = await api.get(`/enrollments/my/${classId}`);
+    return response.data;
+  },
+  updateProgress: async (enrollmentId: string, moduleId: string, status: 'IN_PROGRESS' | 'COMPLETED') => {
+    const response = await api.patch(`/enrollments/${enrollmentId}/modules/${moduleId}`, { status });
+    return response.data;
+  }
+};
