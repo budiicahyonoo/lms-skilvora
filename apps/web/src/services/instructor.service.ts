@@ -9,7 +9,6 @@ export const InstructorService = {
     const response = await api.post('/courses/instructor/classes', data);
     return response.data;
   },
-  // --- TAMBAHAN BARU ---
   getClassById: async (id: string) => {
     const response = await api.get(`/courses/instructor/classes/${id}`);
     return response.data;
@@ -21,7 +20,11 @@ export const InstructorService = {
   deleteModule: async (moduleId: string) => {
     const response = await api.delete(`/modules/${moduleId}`);
     return response.data;
-  }
+  },
+  createQuiz: async (classId: string, data: any) => {
+    const response = await api.post(`/quizzes/instructor/class/${classId}`, data);
+    return response.data;
+  },
 };
 
 export const EnrollmentService = {
@@ -33,7 +36,6 @@ export const EnrollmentService = {
     const response = await api.get('/enrollments/my');
     return response.data;
   },
-  // --- TAMBAHAN BARU ---
   getEnrollmentDetails: async (classId: string) => {
     const response = await api.get(`/enrollments/my/${classId}`);
     return response.data;
@@ -41,5 +43,13 @@ export const EnrollmentService = {
   updateProgress: async (enrollmentId: string, moduleId: string, status: 'IN_PROGRESS' | 'COMPLETED') => {
     const response = await api.patch(`/enrollments/${enrollmentId}/modules/${moduleId}`, { status });
     return response.data;
-  }
+  },
+  getQuiz: async (classId: string) => {
+    const response = await api.get(`/quizzes/class/${classId}`);
+    return response.data;
+  },
+  submitQuiz: async (quizId: string, answers: { questionId: string, answer: string }[]) => {
+    const response = await api.post(`/quizzes/${quizId}/submit`, { answers });
+    return response.data;
+  },
 };

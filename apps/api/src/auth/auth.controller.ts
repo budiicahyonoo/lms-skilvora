@@ -7,6 +7,17 @@ import type { Response } from 'express';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @Post('register')
+  async register(@Body() body: any) {
+    const { email, password, name } = body;
+
+    if (!email || !password) {
+      throw new UnauthorizedException('Email dan Password wajib diisi');
+    }
+
+    return this.authService.register(email, password, name);
+  }
+
   @Post('login')
   async login(@Body() body: any, @Res({ passthrough: true }) res: Response) {
     const user = await this.authService.validateUser(body.email, body.password);

@@ -6,8 +6,25 @@ import { Toaster } from "react-hot-toast";
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "CayLabs Core Engine",
-  description: "Advanced Maincore V1.0",
+  title: {
+    template: '%s | Skilvora',
+    default: 'Skilvora - Platform Belajar Coding & IT Terdepan',
+  },
+  description: "Tingkatkan keahlian programming Anda bersama Skilvora. Pelajari modul terstruktur dari praktisi terbaik dan dapatkan sertifikat industri siap kerja.",
+  keywords: ["LMS", "Kursus Online", "Belajar Coding", "Programming", "Bootcamp IT", "Skilvora"],
+  openGraph: {
+    title: 'Skilvora - Platform Belajar Coding & IT',
+    description: 'Tingkatkan keahlian programming Anda dan raih sertifikat industri.',
+    url: 'https://skilvora.com',
+    siteName: 'Skilvora',
+    locale: 'id_ID',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Skilvora - Platform Belajar Coding & IT',
+    description: 'Tingkatkan keahlian programming Anda dan raih sertifikat industri.',
+  },
 };
 
 export default function RootLayout({
@@ -16,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="id">
       <body className={jakarta.className}>
         {children}
         <Toaster 

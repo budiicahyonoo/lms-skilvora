@@ -17,10 +17,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           </nav>
           <div className="flex gap-3">
             <Button variant="secondary" size="sm" asChild>
-              <Link href="/login">Masuk</Link>
+              <Link href="/auth/login">Masuk</Link>
             </Button>
             <Button size="sm" asChild>
-              <Link href="/register">Daftar</Link>
+              <Link href="/auth/register">Daftar</Link>
             </Button>
           </div>
         </div>

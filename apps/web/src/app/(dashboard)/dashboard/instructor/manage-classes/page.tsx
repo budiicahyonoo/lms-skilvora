@@ -26,7 +26,7 @@ export default function ManageClassesPage() {
           <p className="text-[#00033D]/70">Kelola materi pembelajaran, kuis, dan pantau siswa Anda.</p>
         </div>
         <Button asChild className="gap-2">
-          <Link href="/dashboard/manage-classes/create">
+          <Link href="/dashboard/instructor/manage-classes/create">
             <Plus className="w-4 h-4" /> Buat Kelas Baru
           </Link>
         </Button>
@@ -44,7 +44,7 @@ export default function ManageClassesPage() {
           <h3 className="text-xl font-bold text-[#00033D] mb-2">Belum ada kelas</h3>
           <p className="text-[#00033D]/60 mb-6 max-w-md">Anda belum membuat kelas apa pun. Mulai bagikan keahlian Anda dengan membuat kelas pertama sekarang.</p>
           <Button asChild>
-            <Link href="/dashboard/manage-classes/create">Buat Kelas Pertama</Link>
+            <Link href="/dashboard/instructor/manage-classes/create">Buat Kelas Pertama</Link>
           </Button>
         </GlassCard>
       ) : (
@@ -60,7 +60,7 @@ export default function ManageClassesPage() {
                   </div>
                 )}
                 <div className="absolute top-4 right-4">
-                  <Badge variant={course.status === 'PUBLISHED' ? 'default' : 'secondary'}>
+                  <Badge variant={course.status === 'PUBLISHED' ? 'success' : 'danger'}>
                     {course.status}
                   </Badge>
                 </div>
@@ -78,8 +78,8 @@ export default function ManageClassesPage() {
                   </div>
                 </div>
 
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href={`/dashboard/manage-classes/${course.id}`}>Kelola Konten</Link>
+                <Button variant="secondary" className="w-full" asChild>
+                  <Link href={`/dashboard/instructor/manage-classes/${course.id}`}>Kelola Konten</Link>
                 </Button>
               </div>
             </GlassCard>

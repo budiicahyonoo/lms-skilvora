@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -38,7 +38,8 @@ export class CoursesService {
     const course = await this.prisma.class.findUnique({
       where: { id, instructorId },
       include: {
-        modules: { orderBy: { order: 'asc' } }
+        modules: { orderBy: { order: 'asc' } },
+        quizzes: { include: { questions: true } }
       }
     });
     
@@ -60,10 +61,11 @@ export class CoursesService {
     return this.prisma.class.findMany({
       where: { status: 'PUBLISHED' },
       include: {
-        category: true,
         instructor: { select: { name: true, profilePicture: true } },
+        category: { select: { name: true, slug: true } },
+        _count: { select: { modules: true, enrollments: true } }
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'desc' }
     });
   }
 
@@ -80,7 +82,6 @@ export class CoursesService {
             title: true,
             order: true,
             isFreePreview: true,
-            // Konten & VideoUrl tidak dikirim semua untuk publik, proteksi endpoint diperlukan nanti
           }
         },
       },
@@ -88,5 +89,27 @@ export class CoursesService {
 
     if (!course) throw new NotFoundException('Kelas tidak ditemukan');
     return course;
+  }
+
+  async publishClass(id: string, instructorId: string) {
+    const course = await this.prisma.class.findUnique({
+      where: { id, instructorId },
+      include: {
+        _count: { select: { modules: true } }
+      }
+    });
+
+    if (!course) {
+      throw new NotFoundException('Kelas tidak ditemukan atau Anda tidak memiliki akses');
+    }
+
+    if (course._count.modules === 0) {
+      throw new BadRequestException('Kelas harus memiliki setidaknya satu modul sebelum diterbitkan');
+    }
+
+    return this.prisma.class.update({
+      where: { id },
+      data: { status: 'PUBLISHED' }
+    });
   }
 }

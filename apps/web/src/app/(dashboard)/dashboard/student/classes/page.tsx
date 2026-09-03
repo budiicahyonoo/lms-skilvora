@@ -56,8 +56,10 @@ export default function MyClassesPage() {
                       <div className="bg-[#0033FF] h-2 rounded-full" style={{ width: `${percentage}%` }}></div>
                     </div>
                   </div>
+
+
                   <Button className="w-full gap-2" asChild>
-                    <Link href={`/dashboard/learn/${course.id}`}><PlayCircle className="w-4 h-4"/> Lanjutkan Belajar</Link>
+                    <Link href={`/dashboard/student/learn/${enrollment.classId}`}><PlayCircle className="w-4 h-4"/> Lanjutkan Belajar</Link>
                   </Button>
                 </div>
               </GlassCard>

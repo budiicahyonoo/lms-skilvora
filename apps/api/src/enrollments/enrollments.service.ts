@@ -6,40 +6,38 @@ export class EnrollmentsService {
   constructor(private prisma: PrismaService) {}
 
   async enroll(userId: string, classId: string) {
-    // Cek apakah sudah pernah mendaftar
-    const existingEnrollment = await this.prisma.enrollment.findUnique({
-      where: { userId_classId: { userId, classId } }
-    });
-
-    if (existingEnrollment) {
-      throw new BadRequestException('Anda sudah terdaftar di kelas ini');
-    }
-
-    const course = await this.prisma.class.findUnique({
-      where: { id: classId },
-      include: { modules: true }
-    });
-
+    // 1. Cek validasi kelas
+    const course = await this.prisma.class.findUnique({ where: { id: classId } });
     if (!course) throw new NotFoundException('Kelas tidak ditemukan');
 
-    const isFree = Number(course.price) === 0;
-    const status = isFree ? 'ACTIVE' : 'PENDING';
+    // 2. Cegah pendaftaran ganda
+    const existing = await this.prisma.enrollment.findUnique({
+      where: { userId_classId: { userId, classId } }
+    });
+    if (existing) throw new BadRequestException('Anda sudah terdaftar di kelas ini');
 
-    // Buat enrollment dan inisialisasi progress untuk semua modul
+    const isFree = Number(course.price) === 0;
+
+    // 3. Buat Enrollment (ACTIVE jika gratis, PENDING jika berbayar)
     const enrollment = await this.prisma.enrollment.create({
       data: {
         userId,
         classId,
-        status,
-        progresses: {
-          create: course.modules.map(modul => ({
-            moduleId: modul.id,
-            status: 'NOT_STARTED'
-          }))
-        }
-      },
-      include: { progresses: true }
+        status: isFree ? 'ACTIVE' : 'PENDING'
+      }
     });
+
+    // 4. Generate Tagihan Pembayaran jika kelas berbayar
+    if (!isFree) {
+      await this.prisma.payment.create({
+        data: {
+          enrollmentId: enrollment.id,
+          amount: course.price,
+          method: 'MANUAL_TRANSFER',
+          status: 'PENDING'
+        }
+      });
+    }
 
     return enrollment;
   }
@@ -84,5 +82,50 @@ export class EnrollmentsService {
         progresses: true
       }
     });
+  }
+
+  async getMyCertificates(userId: string) {
+    return this.prisma.certificate.findMany({
+      where: { userId },
+      include: { 
+        class: { select: { title: true, thumbnail: true } } 
+      },
+      orderBy: { issuedAt: 'desc' }
+    });
+  }
+
+  async getMyPayments(userId: string) {
+    return this.prisma.payment.findMany({
+      where: {
+        enrollment: { userId }
+      },
+      include: {
+        enrollment: {
+          include: {
+            class: { select: { title: true, price: true, thumbnail: true } }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async uploadPaymentProof(paymentId: string, proofUrl: string) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: { enrollment: true }
+    });
+
+    if (!payment) throw new NotFoundException('Tagihan tidak ditemukan');
+
+    const updatedPayment = await this.prisma.payment.update({
+      where: { id: paymentId },
+      data: { 
+        proofUrl, 
+        status: 'PENDING' 
+      }
+    });
+
+    return updatedPayment;
   }
 }

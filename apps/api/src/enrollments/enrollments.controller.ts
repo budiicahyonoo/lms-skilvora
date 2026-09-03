@@ -7,9 +7,10 @@ import { AuthGuard } from '@nestjs/passport';
 export class EnrollmentsController {
   constructor(private readonly enrollmentsService: EnrollmentsService) {}
 
-  @Post(':classId')
-  enroll(@Param('classId') classId: string, @Request() req: any) {
-    return this.enrollmentsService.enroll(req.user.id, classId);
+  // 1. STATIC ROUTES (Harus diletakkan di atas)
+  @Get('certificates/me')
+  async getMyCertificates(@Request() req: any) {
+    return this.enrollmentsService.getMyCertificates(req.user.id);
   }
 
   @Get('my')
@@ -17,9 +18,25 @@ export class EnrollmentsController {
     return this.enrollmentsService.getMyEnrollments(req.user.id);
   }
 
+  @Get('payments/me')
+  async getMyPayments(@Request() req: any) {
+    return this.enrollmentsService.getMyPayments(req.user.id);
+  }
+
+  @Patch('payments/:id/proof')
+  async uploadProof(@Param('id') id: string, @Body('proofUrl') proofUrl: string) {
+    return this.enrollmentsService.uploadPaymentProof(id, proofUrl);
+  }
+
+  // 2. DYNAMIC ROUTES (Diletakkan di bawah)
   @Get('my/:classId')
   getEnrollmentDetails(@Param('classId') classId: string, @Request() req: any) {
     return this.enrollmentsService.getEnrollmentDetails(req.user.id, classId);
+  }
+
+  @Post(':classId')
+  async enroll(@Param('classId') classId: string, @Request() req: any) {
+    return this.enrollmentsService.enroll(req.user.id, classId);
   }
 
   @Patch(':enrollmentId/modules/:moduleId')

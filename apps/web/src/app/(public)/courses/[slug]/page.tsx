@@ -15,24 +15,23 @@ async function getCourseData(slug: string) {
 }
 
 // Generate Meta Tags dinamis untuk SEO
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const course = await getCourseData(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata | null> {
+  // Await params terlebih dahulu untuk Next.js 15+
+  const resolvedParams = await params;
+  const course = await getCourseData(resolvedParams.slug);
   
   if (!course) return { title: 'Kelas Tidak Ditemukan - Skilvora' };
 
   return {
-    title: `${course.title} — Skilvora`,
-    description: course.description?.substring(0, 160) || `Belajar ${course.title} dari nol bersama Skilvora.`,
-    openGraph: {
-      title: `${course.title} | Skilvora`,
-      description: course.description?.substring(0, 160),
-      images: [course.thumbnail || '/default-og-image.jpg'],
-    },
+    title: `${course.title} - Skilvora`,
+    description: course.description,
   };
 }
 
-export default async function CourseDetailPage({ params }: { params: { slug: string } }) {
-  const course = await getCourseData(params.slug);
+export default async function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  // Await params terlebih dahulu untuk Next.js 15+
+  const resolvedParams = await params;
+  const course = await getCourseData(resolvedParams.slug);
 
   if (!course) {
     notFound();

@@ -34,6 +34,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const isActive = (path: string) => pathname === path;
   const linkClass = (path: string) => `px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive(path) ? 'bg-[#0033FF] text-white shadow-[0_4px_20px_rgba(0,51,255,0.35)]' : 'text-white/70 hover:text-white hover:bg-white/10'}`;
 
+  // Menentukan route beranda berdasarkan role
+  const homeRoute = user?.role === 'STUDENT' ? '/dashboard/student' : user?.role === 'INSTRUCTOR' ? '/dashboard/instructor' : '/dashboard/admin';
+
   return (
     <div className="min-h-screen flex bg-white">
       {/* Sidebar - Dark Glass */}
@@ -50,27 +53,27 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 px-4 py-4 flex flex-col gap-2 overflow-y-auto">
-          <Link href="/dashboard" className={linkClass('/dashboard')}>Beranda Dasbor</Link>
+          <Link href={homeRoute} className={linkClass(homeRoute)}>Beranda Dasbor</Link>
 
           {user?.role === 'STUDENT' && (
             <>
-              <Link href="/dashboard/classes" className={linkClass('/dashboard/classes')}>Kelas Saya</Link>
-              <Link href="/dashboard/certificates" className={linkClass('/dashboard/certificates')}>Sertifikat</Link>
+              <Link href="/dashboard/student/classes" className={linkClass('/dashboard/student/classes')}>Kelas Saya</Link>
+              <Link href="/dashboard/student/certificates" className={linkClass('/dashboard/student/certificates')}>Sertifikat</Link>
             </>
           )}
 
           {user?.role === 'INSTRUCTOR' && (
             <>
-              <Link href="/dashboard/manage-classes" className={linkClass('/dashboard/manage-classes')}>Kelola Kelas</Link>
-              <Link href="/dashboard/statistics" className={linkClass('/dashboard/statistics')}>Statistik Belajar</Link>
+              <Link href="/dashboard/instructor/manage-classes" className={linkClass('/dashboard/instructor/manage-classes')}>Kelola Kelas</Link>
+              <Link href="/dashboard/instructor/statistics" className={linkClass('/dashboard/instructor/statistics')}>Laporan Pendapatan</Link>
             </>
           )}
 
           {user?.role === 'ADMIN' && (
             <>
-              <Link href="/dashboard/roadmaps" className={linkClass('/dashboard/roadmaps')}>Kelola Roadmap</Link>
-              <Link href="/dashboard/payments" className={linkClass('/dashboard/payments')}>Verifikasi Pembayaran</Link>
-              <Link href="/dashboard/users" className={linkClass('/dashboard/users')}>Pengguna</Link>
+              <Link href="/dashboard/admin/roadmap" className={linkClass('/dashboard/admin/roadmap')}>Kelola Roadmap</Link>
+              <Link href="/dashboard/admin/verifications" className={linkClass('/dashboard/admin/verifications')}>Verifikasi Pembayaran</Link>
+              <Link href="/dashboard/admin/users" className={linkClass('/dashboard/admin/users')}>Manajemen Pengguna</Link>
             </>
           )}
         </nav>

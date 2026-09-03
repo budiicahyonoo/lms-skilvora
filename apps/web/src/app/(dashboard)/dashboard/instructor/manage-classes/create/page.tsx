@@ -30,7 +30,7 @@ export default function CreateClassPage() {
     try {
       await InstructorService.createClass(formData);
       toast.success("Kelas berhasil dibuat dan disimpan sebagai Draft!");
-      router.push("/dashboard/manage-classes");
+      router.push("/dashboard/instructor/manage-classes");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Gagal membuat kelas");
     } finally {
@@ -41,8 +41,8 @@ export default function CreateClassPage() {
   return (
     <div className="max-w-4xl">
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/manage-classes"><ArrowLeft className="w-4 h-4" /></Link>
+        <Button variant="secondary" size="icon" asChild>
+          <Link href="/dashboard/instructor/manage-classes"><ArrowLeft className="w-4 h-4" /></Link>
         </Button>
         <div>
           <h1 className="text-3xl font-bold text-[#00033D]">Buat Kelas Baru</h1>
